@@ -1,0 +1,74 @@
+# ========================================
+# SIMPLE DEPLOYMENT COMMANDS
+# Copy and paste these one by one
+# ========================================
+
+# STEP 1: Authenticate with GitHub (run this first)
+# This will open your browser
+gh auth login
+
+# When prompted:
+# - Choose: GitHub.com
+# - Choose: HTTPS
+# - Choose: Login with a web browser
+# - Copy the code shown and paste in browser
+
+# ========================================
+
+# STEP 2: Create the repository on GitHub
+gh repo create HomeLoanVsODIndiaOct2025 --public --description "Comprehensive Home Loan Comparison Tool for India - Regular EMI vs Overdraft (SBI MaxGain, ICICI). Real bank data Oct 2025, tax calculator, prepayment simulator, hidden issues & smart strategies." --source=. --remote=origin --push
+
+# ========================================
+
+# THAT'S IT! The above command:
+# - Creates the GitHub repository
+# - Makes it public
+# - Adds description
+# - Sets up remote
+# - Pushes all your code
+# - All in ONE command!
+
+# ========================================
+
+# STEP 3: Get your repository URL
+gh repo view --web
+
+# This will open your GitHub repository in browser
+
+# ========================================
+
+# STEP 4: Deploy to Streamlit Cloud
+#
+# 1. Go to: https://share.streamlit.io
+# 2. Click "Sign in" → "Continue with GitHub"
+# 3. Click "New app"
+# 4. Fill in:
+#    Repository: HomeLoanVsODIndiaOct2025
+#    Branch: main (or master)
+#    Main file: app/home_loan_comparison_app.py
+#    App URL: HomeLoanVsODIndiaOct2025
+# 5. Click "Deploy!"
+#
+# Your app will be live at:
+# https://HomeLoanVsODIndiaOct2025.streamlit.app
+
+# ========================================
+# TROUBLESHOOTING
+# ========================================
+
+# If "gh auth login" doesn't work, use browser method:
+# 1. Go to: https://github.com/new
+# 2. Create repo named: HomeLoanVsODIndiaOct2025
+# 3. Make it Public
+# 4. DON'T initialize with README
+# 5. Then run:
+
+git remote add origin https://github.com/YOUR_GITHUB_USERNAME/HomeLoanVsODIndiaOct2025.git
+git branch -M main
+git push -u origin main
+
+# Replace YOUR_GITHUB_USERNAME with your actual username
+# When prompted for password, use Personal Access Token (not password)
+# Get token at: https://github.com/settings/tokens
+
+# ========================================
