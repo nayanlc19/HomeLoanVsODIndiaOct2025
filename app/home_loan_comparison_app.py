@@ -239,6 +239,46 @@ selected_od_bank = st.sidebar.selectbox(
     options=list(BANK_DATA["Home Loan with Overdraft"].keys())
 )
 
+# Manual Interest Rate Override
+st.sidebar.subheader("🎯 Custom Interest Rates (Optional)")
+enable_manual_rates = st.sidebar.checkbox(
+    "Override Interest Rates Manually",
+    value=False,
+    help="Enable to enter your own negotiated rates or test hypothetical scenarios"
+)
+
+manual_regular_rate = None
+manual_od_rate = None
+
+if enable_manual_rates:
+    st.sidebar.markdown("**Enter Your Custom Rates:**")
+
+    # Get default rates from selected banks
+    default_regular_rate = BANK_DATA["Regular Home Loan (EMI)"][selected_regular_bank]["interest_rate"]
+    default_od_rate = BANK_DATA["Home Loan with Overdraft"][selected_od_bank]["interest_rate"]
+
+    manual_regular_rate = st.sidebar.number_input(
+        "Regular Loan Interest Rate (%)",
+        min_value=6.0,
+        max_value=15.0,
+        value=float(default_regular_rate),
+        step=0.05,
+        format="%.2f",
+        help="Enter interest rate for regular home loan (e.g., 8.50)"
+    )
+
+    manual_od_rate = st.sidebar.number_input(
+        "Overdraft Interest Rate (%)",
+        min_value=6.0,
+        max_value=15.0,
+        value=float(default_od_rate),
+        step=0.05,
+        format="%.2f",
+        help="Enter interest rate for overdraft loan (e.g., 8.75)"
+    )
+
+    st.sidebar.info("ℹ️ Using custom rates. All other bank parameters (fees, charges) remain from selected banks.")
+
 # Functions for calculations
 def calculate_emi(principal, annual_rate, months):
     """Calculate EMI for home loan"""
@@ -248,12 +288,12 @@ def calculate_emi(principal, annual_rate, months):
     emi = principal * monthly_rate * (1 + monthly_rate)**months / ((1 + monthly_rate)**months - 1)
     return emi
 
-def calculate_regular_home_loan(amount, bank_name, tenure, tax_slab, old_regime, prop_type, annual_prepay=0, prepay_month=12):
+def calculate_regular_home_loan(amount, bank_name, tenure, tax_slab, old_regime, prop_type, annual_prepay=0, prepay_month=12, custom_rate=None):
     """Calculate complete cost for regular home loan with EMI and optional annual prepayment"""
     bank_data = BANK_DATA["Regular Home Loan (EMI)"][bank_name]
 
-    # Interest rate
-    interest_rate = bank_data["interest_rate"]
+    # Interest rate (use custom rate if provided, otherwise use bank rate)
+    interest_rate = custom_rate if custom_rate is not None else bank_data["interest_rate"]
     monthly_rate = interest_rate / (12 * 100)
 
     # Processing fee
@@ -360,12 +400,12 @@ def calculate_regular_home_loan(amount, bank_name, tenure, tax_slab, old_regime,
     }
 
 def calculate_overdraft_home_loan(amount, bank_name, tenure, surplus_initial, surplus_monthly,
-                                   tax_slab, old_regime, prop_type, withdrawal_pattern):
+                                   tax_slab, old_regime, prop_type, withdrawal_pattern, custom_rate=None):
     """Calculate cost for home loan with overdraft facility"""
     bank_data = BANK_DATA["Home Loan with Overdraft"][bank_name]
 
-    # Interest rate (usually 0.15-0.25% higher than regular)
-    interest_rate = bank_data["interest_rate"]
+    # Interest rate (use custom rate if provided, otherwise use bank rate)
+    interest_rate = custom_rate if custom_rate is not None else bank_data["interest_rate"]
     monthly_rate = interest_rate / (12 * 100)
 
     # Processing fee
@@ -464,22 +504,30 @@ def calculate_overdraft_home_loan(amount, bank_name, tenure, surplus_initial, su
 # Calculate costs
 regular_loan = calculate_regular_home_loan(
     loan_amount, selected_regular_bank, tenure_months,
-    tax_slab, old_tax_regime, property_type, annual_prepayment, prepayment_month
+    tax_slab, old_tax_regime, property_type, annual_prepayment, prepayment_month,
+    custom_rate=manual_regular_rate
 )
 
 od_loan = calculate_overdraft_home_loan(
     loan_amount, selected_od_bank, tenure_months, surplus_amount,
-    monthly_surplus, tax_slab, old_tax_regime, property_type, withdrawal_pattern
+    monthly_surplus, tax_slab, old_tax_regime, property_type, withdrawal_pattern,
+    custom_rate=manual_od_rate
 )
 
 # Main comparison section
 st.header("📈 Cost Comparison Summary")
+
+# Show custom rate indicator if enabled
+if enable_manual_rates:
+    st.success(f"🎯 Using Custom Rates: Regular={manual_regular_rate}% | Overdraft={manual_od_rate}%")
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("### 🏦 Regular Home Loan (EMI)")
     st.markdown(f"**Bank:** {selected_regular_bank}")
+    if enable_manual_rates:
+        st.caption(f"💡 Custom Rate: {manual_regular_rate}% (overriding bank's {BANK_DATA['Regular Home Loan (EMI)'][selected_regular_bank]['interest_rate']}%)")
     st.metric("Monthly EMI", format_with_approximation(regular_loan['emi']))
     st.metric("Total Interest", format_with_approximation(regular_loan['total_interest']))
     st.metric("Tax Benefit", format_with_approximation(regular_loan['total_tax_benefit']),
@@ -489,6 +537,8 @@ with col1:
 with col2:
     st.markdown("### 💰 Home Loan with Overdraft")
     st.markdown(f"**Bank:** {selected_od_bank}")
+    if enable_manual_rates:
+        st.caption(f"💡 Custom Rate: {manual_od_rate}% (overriding bank's {BANK_DATA['Home Loan with Overdraft'][selected_od_bank]['interest_rate']}%)")
     st.metric("Monthly EMI", format_with_approximation(od_loan['emi']))
     st.metric("Total Interest", format_with_approximation(od_loan['total_interest_paid']))
     st.metric("Interest Saved vs Regular", format_with_approximation(od_loan['total_interest_saved']),
@@ -785,41 +835,44 @@ surplus_df = pd.DataFrame({
 
 st.dataframe(surplus_df, use_container_width=True, hide_index=True)
 
-# All banks comparison
-st.header("🏦 Compare All Banks")
+# All banks comparison (hide when using manual rates)
+if not enable_manual_rates:
+    st.header("🏦 Compare All Banks")
 
-st.subheader("Regular Home Loan Comparison")
-regular_comparison = []
-for bank, data in BANK_DATA["Regular Home Loan (EMI)"].items():
-    cost = calculate_regular_home_loan(loan_amount, bank, tenure_months, tax_slab, old_tax_regime, property_type, annual_prepayment, prepayment_month)
-    regular_comparison.append({
-        "Bank": bank,
-        "Interest Rate (%)": data["interest_rate"],
-        "Processing Fee (%)": data["processing_fee"],
-        "Monthly EMI (₹)": f"{cost['emi']:,.0f}",
-        "Total Interest (₹)": f"{cost['total_interest']:,.0f}",
-        "Tax Benefit (₹)": f"{cost['total_tax_benefit']:,.0f}",
-        "Net Cost (₹)": f"{cost['net_cost']:,.0f}"
-    })
+    st.subheader("Regular Home Loan Comparison")
+    regular_comparison = []
+    for bank, data in BANK_DATA["Regular Home Loan (EMI)"].items():
+        cost = calculate_regular_home_loan(loan_amount, bank, tenure_months, tax_slab, old_tax_regime, property_type, annual_prepayment, prepayment_month)
+        regular_comparison.append({
+            "Bank": bank,
+            "Interest Rate (%)": data["interest_rate"],
+            "Processing Fee (%)": data["processing_fee"],
+            "Monthly EMI (₹)": f"{cost['emi']:,.0f}",
+            "Total Interest (₹)": f"{cost['total_interest']:,.0f}",
+            "Tax Benefit (₹)": f"{cost['total_tax_benefit']:,.0f}",
+            "Net Cost (₹)": f"{cost['net_cost']:,.0f}"
+        })
 
-st.dataframe(pd.DataFrame(regular_comparison), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(regular_comparison), use_container_width=True, hide_index=True)
 
-st.subheader("Home Loan with Overdraft Comparison")
-od_comparison = []
-for bank, data in BANK_DATA["Home Loan with Overdraft"].items():
-    cost = calculate_overdraft_home_loan(loan_amount, bank, tenure_months, surplus_amount, monthly_surplus,
-                                         tax_slab, old_tax_regime, property_type, withdrawal_pattern)
-    od_comparison.append({
-        "Bank": bank,
-        "Interest Rate (%)": data["interest_rate"],
-        "Min Loan (₹)": f"{data['min_loan']:,.0f}",
-        "OD Charge (₹)": data["od_charge"],
-        "Interest Paid (₹)": f"{cost['total_interest_paid']:,.0f}",
-        "Interest Saved (₹)": f"{cost['total_interest_saved']:,.0f}",
-        "Net Cost (₹)": f"{cost['net_cost']:,.0f}"
-    })
+    st.subheader("Home Loan with Overdraft Comparison")
+    od_comparison = []
+    for bank, data in BANK_DATA["Home Loan with Overdraft"].items():
+        cost = calculate_overdraft_home_loan(loan_amount, bank, tenure_months, surplus_amount, monthly_surplus,
+                                             tax_slab, old_tax_regime, property_type, withdrawal_pattern)
+        od_comparison.append({
+            "Bank": bank,
+            "Interest Rate (%)": data["interest_rate"],
+            "Min Loan (₹)": f"{data['min_loan']:,.0f}",
+            "OD Charge (₹)": data["od_charge"],
+            "Interest Paid (₹)": f"{cost['total_interest_paid']:,.0f}",
+            "Interest Saved (₹)": f"{cost['total_interest_saved']:,.0f}",
+            "Net Cost (₹)": f"{cost['net_cost']:,.0f}"
+        })
 
-st.dataframe(pd.DataFrame(od_comparison), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(od_comparison), use_container_width=True, hide_index=True)
+else:
+    st.info("ℹ️ 'Compare All Banks' section is hidden when using custom interest rates. Disable manual override to see all banks comparison.")
 
 # Recommendations
 st.header("🎯 When to Choose What")
