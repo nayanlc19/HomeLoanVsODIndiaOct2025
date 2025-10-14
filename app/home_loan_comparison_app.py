@@ -11,6 +11,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'utils'))
 from rate_loader import get_bank_data_for_app, get_update_status_message
 from rate_calculator import calculate_personalized_rate, get_profile_impact_summary
+from number_formatter import format_with_approximation, format_currency_compact
 
 # Note: Page configuration is set in home_loan_with_payment.py (wrapper file)
 # to avoid duplicate set_page_config error
@@ -479,21 +480,21 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("### 🏦 Regular Home Loan (EMI)")
     st.markdown(f"**Bank:** {selected_regular_bank}")
-    st.metric("Monthly EMI", f"₹{regular_loan['emi']:,.0f}")
-    st.metric("Total Interest", f"₹{regular_loan['total_interest']:,.0f}")
-    st.metric("Tax Benefit", f"₹{regular_loan['total_tax_benefit']:,.0f}",
+    st.metric("Monthly EMI", format_with_approximation(regular_loan['emi']))
+    st.metric("Total Interest", format_with_approximation(regular_loan['total_interest']))
+    st.metric("Tax Benefit", format_with_approximation(regular_loan['total_tax_benefit']),
               help="Total tax savings over loan tenure")
-    st.metric("Net Cost", f"₹{regular_loan['net_cost']:,.0f}")
+    st.metric("Net Cost", format_with_approximation(regular_loan['net_cost']))
 
 with col2:
     st.markdown("### 💰 Home Loan with Overdraft")
     st.markdown(f"**Bank:** {selected_od_bank}")
-    st.metric("Monthly EMI", f"₹{od_loan['emi']:,.0f}")
-    st.metric("Total Interest", f"₹{od_loan['total_interest_paid']:,.0f}")
-    st.metric("Interest Saved vs Regular", f"₹{od_loan['total_interest_saved']:,.0f}",
-              delta=f"₹{od_loan['total_interest_saved']:,.0f}",
+    st.metric("Monthly EMI", format_with_approximation(od_loan['emi']))
+    st.metric("Total Interest", format_with_approximation(od_loan['total_interest_paid']))
+    st.metric("Interest Saved vs Regular", format_with_approximation(od_loan['total_interest_saved']),
+              delta=format_currency_compact(od_loan['total_interest_saved']),
               delta_color="normal")
-    st.metric("Net Cost", f"₹{od_loan['net_cost']:,.0f}")
+    st.metric("Net Cost", format_with_approximation(od_loan['net_cost']))
 
 # Savings calculation
 total_savings = regular_loan['net_cost'] - od_loan['net_cost']
@@ -502,14 +503,14 @@ savings_percentage = (total_savings / regular_loan['net_cost']) * 100
 if total_savings > 0:
     st.markdown(f"""
     <div class="success-box">
-    <strong>🎉 Excellent News!</strong> By choosing Home Loan with Overdraft, you can save <strong>₹{total_savings:,.0f}</strong>
+    <strong>🎉 Excellent News!</strong> By choosing Home Loan with Overdraft, you can save <strong>{format_with_approximation(total_savings)}</strong>
     ({savings_percentage:.1f}% reduction) over {tenure_years} years!
     </div>
     """, unsafe_allow_html=True)
 else:
     st.markdown(f"""
     <div class="warning-box">
-    <strong>⚠️ Note:</strong> In this scenario, regular home loan is cheaper by <strong>₹{abs(total_savings):,.0f}</strong>.
+    <strong>⚠️ Note:</strong> In this scenario, regular home loan is cheaper by <strong>{format_with_approximation(abs(total_savings))}</strong>.
     Overdraft works best when you can park significant surplus funds regularly.
     </div>
     """, unsafe_allow_html=True)

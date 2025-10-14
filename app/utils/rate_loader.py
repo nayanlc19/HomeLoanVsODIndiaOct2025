@@ -5,6 +5,13 @@ import json
 import os
 from datetime import datetime
 
+# Import rate calculator at module level to avoid relative import issues
+try:
+    from rate_calculator import calculate_personalized_rate
+except ImportError:
+    # Fallback for different import contexts
+    from .rate_calculator import calculate_personalized_rate
+
 # Fallback default rates if JSON file not available or fails to load
 DEFAULT_RATES = {
     "last_updated": "2025-10-14",
@@ -90,7 +97,6 @@ def get_bank_data_for_app(use_personalized=False, user_profile=None):
 
         # Apply personalization if requested
         if use_personalized and user_profile:
-            from .rate_calculator import calculate_personalized_rate
             result = calculate_personalized_rate(base_rate, user_profile)
             final_rate = result['final_rate']
         else:
@@ -110,7 +116,6 @@ def get_bank_data_for_app(use_personalized=False, user_profile=None):
 
         # Apply personalization if requested
         if use_personalized and user_profile:
-            from .rate_calculator import calculate_personalized_rate
             result = calculate_personalized_rate(base_rate, user_profile)
             final_rate = result['final_rate']
         else:

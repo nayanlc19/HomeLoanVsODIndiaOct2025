@@ -4,6 +4,7 @@ Payment Handler for Razorpay Integration with Admin Bypass and Free Trial
 import streamlit as st
 import json
 from datetime import datetime, timedelta
+import hashlib
 
 # Admin emails with free unlimited access
 ADMIN_EMAILS = [
@@ -13,6 +14,9 @@ ADMIN_EMAILS = [
 
 # Free trial duration in minutes
 FREE_TRIAL_MINUTES = 3
+
+# Maximum number of trials per IP address
+MAX_TRIALS_PER_IP = 5
 
 class PaymentHandler:
     """Handle payment verification and access control"""
@@ -31,25 +35,50 @@ class PaymentHandler:
             st.session_state.trial_start_time = None
         if 'is_admin' not in st.session_state:
             st.session_state.is_admin = False
+        if 'trial_count' not in st.session_state:
+            st.session_state.trial_count = 0
+        if 'trial_history' not in st.session_state:
+            st.session_state.trial_history = []  # Store completed trial timestamps
 
     def check_admin_email(self, email):
         """Check if email is in admin list"""
         return email.lower().strip() in [e.lower() for e in ADMIN_EMAILS]
 
+    def can_start_trial(self):
+        """Check if user can start a new trial"""
+        return st.session_state.trial_count < MAX_TRIALS_PER_IP
+
+    def get_remaining_trials(self):
+        """Get number of trials remaining"""
+        return MAX_TRIALS_PER_IP - st.session_state.trial_count
+
     def start_free_trial(self):
         """Start the 3-minute free trial"""
-        if st.session_state.trial_start_time is None:
+        if self.can_start_trial() and st.session_state.trial_start_time is None:
             st.session_state.trial_start_time = datetime.now()
             return True
         return False
 
+    def end_trial(self):
+        """End current trial and increment counter"""
+        if st.session_state.trial_start_time is not None:
+            st.session_state.trial_history.append(st.session_state.trial_start_time)
+            st.session_state.trial_count += 1
+            st.session_state.trial_start_time = None
+
     def get_trial_time_remaining(self):
         """Get remaining trial time in seconds"""
         if st.session_state.trial_start_time is None:
-            return FREE_TRIAL_MINUTES * 60
+            return 0
 
         elapsed = (datetime.now() - st.session_state.trial_start_time).total_seconds()
         remaining = (FREE_TRIAL_MINUTES * 60) - elapsed
+
+        # Auto-end trial if time expired
+        if remaining <= 0:
+            self.end_trial()
+            return 0
+
         return max(0, remaining)
 
     def is_trial_active(self):
@@ -57,125 +86,77 @@ class PaymentHandler:
         if st.session_state.trial_start_time is None:
             return False
 
-        return self.get_trial_time_remaining() > 0
+        remaining = self.get_trial_time_remaining()
+        if remaining <= 0:
+            return False
+
+        return True
 
     def show_payment_wall(self):
-        """Display payment wall for unpaid users"""
+        """Display compact payment wall for unpaid users"""
         st.markdown("""
         <style>
-        .payment-wall {
+        .compact-payment {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 3rem 2rem;
-            border-radius: 1rem;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
             color: white;
-            text-align: center;
-            margin: 2rem 0;
-        }
-        .price-tag {
-            font-size: 3rem;
-            font-weight: bold;
             margin: 1rem 0;
         }
-        .feature-list {
-            text-align: left;
-            max-width: 600px;
-            margin: 2rem auto;
-            font-size: 1.1rem;
-        }
-        .razorpay-button {
-            background-color: #2E7D32;
-            color: white;
-            padding: 1rem 2rem;
+        .compact-price {
             font-size: 1.2rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            margin-top: 1rem;
-        }
-        .admin-box {
-            background-color: rgba(255,255,255,0.1);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        # Title section
-        st.markdown('<div class="payment-wall">', unsafe_allow_html=True)
-        st.markdown('<h1 style="color: white; text-align: center;">🏠 Unlock Full Home Loan Analysis</h1>', unsafe_allow_html=True)
-        st.markdown('<div class="price-tag">₹49 Only</div>', unsafe_allow_html=True)
-        st.markdown('<p style="font-size: 1.2rem; color: white; text-align: center;">One-time payment • Lifetime access</p>', unsafe_allow_html=True)
+        st.markdown('<div class="compact-payment">', unsafe_allow_html=True)
+        st.markdown('<p style="color: white; margin-bottom: 0.5rem;">🔒 <strong>Unlock Full Access</strong> to compare all banks, see detailed breakdowns, tax strategies & save lakhs!</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # Features list using Streamlit markdown
-        st.markdown("""
-        <div style="color: white; text-align: left; max-width: 600px; margin: 2rem auto; font-size: 1.1rem;">
-        <h3 style="color: white; text-align: center;">✨ What You'll Get:</h3>
-        </div>
-        """, unsafe_allow_html=True)
+        # Three columns for options
+        col1, col2, col3 = st.columns(3)
 
-        st.markdown("""
-        - ✅ Complete loan comparison (Regular vs Overdraft)
-        - ✅ Compare ALL major banks (HDFC, ICICI, SBI, Axis, BOB, PNB)
-        - ✅ Tax benefit calculations (80C + 24b)
-        - ✅ Advanced prepayment strategies
-        - ✅ Year-by-year breakdown
-        - ✅ Interactive charts & visualizations
-        - ✅ Hidden charges analysis
-        - ✅ Smart tips to save lakhs
-        - ✅ EMI vs OD detailed comparison
-        """)
+        with col1:
+            st.markdown("**🔓 Admin Access**")
+            admin_email = st.text_input("Email:", key="admin_email_input", label_visibility="collapsed", placeholder="Admin email")
+            if st.button("Verify", key="verify_admin"):
+                if self.check_admin_email(admin_email):
+                    st.session_state.is_admin = True
+                    st.session_state.admin_email = admin_email
+                    st.session_state.payment_verified = True
+                    st.success("✅ Access granted!")
+                    st.rerun()
+                else:
+                    st.error("❌ Not authorized")
 
-        st.markdown("""
-        <p style="font-size: 0.9rem; opacity: 0.9; color: white; text-align: center;">
-        💡 This tool has helped thousands save ₹5-10 lakhs on their home loans!
-        </p>
-        </div>
-        """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("**🎁 Free Trials**")
+            trial_remaining = self.get_trial_time_remaining()
+            trials_left = self.get_remaining_trials()
 
-        # Admin email input
-        st.markdown("### 🔓 Admin Access")
-        admin_email = st.text_input("Enter admin email for free access:", key="admin_email_input")
-
-        if st.button("Verify Admin Email"):
-            if self.check_admin_email(admin_email):
-                st.session_state.is_admin = True
-                st.session_state.admin_email = admin_email
-                st.session_state.payment_verified = True
-                st.success(f"✅ Admin access granted for {admin_email}!")
-                st.balloons()
-                st.rerun()
+            if trial_remaining > 0:
+                minutes = int(trial_remaining // 60)
+                seconds = int(trial_remaining % 60)
+                st.info(f"⏱️ {minutes}m {seconds}s left")
             else:
-                st.error("❌ Email not in admin list. Please pay to access.")
+                if trials_left > 0:
+                    if st.button(f"Start Trial ({trials_left}/5 left)", key="start_trial", type="primary"):
+                        if self.start_free_trial():
+                            st.success(f"✅ Trial {st.session_state.trial_count + 1} started!")
+                            st.rerun()
+                else:
+                    st.error("No trials left")
 
-        st.markdown("---")
+        with col3:
+            st.markdown("**💳 Pay Once**")
+            st.markdown("₹49 only • Lifetime")
+            # Razorpay button will be shown below
 
-        # Free trial option
-        trial_remaining = self.get_trial_time_remaining()
-        if trial_remaining > 0:
-            minutes = int(trial_remaining // 60)
-            seconds = int(trial_remaining % 60)
-            st.info(f"⏱️ Free trial active: {minutes}m {seconds}s remaining")
-        else:
-            if st.button("🎁 Start 3-Minute Free Trial", type="primary"):
-                self.start_free_trial()
-                st.success("✅ Free trial started! You have 3 minutes of full access.")
-                st.rerun()
-
-        st.markdown("---")
-
-        # Razorpay Payment Button
-        self.show_razorpay_button()
-
-        # Free preview section
-        st.markdown("---")
-        st.markdown("### 👀 Options to Access")
-        st.info("""
-        **Choose one:**
-        1. 🔓 **Admin Email** - Instant free access (for authorized users)
-        2. 🎁 **3-Minute Trial** - Test all features risk-free
-        3. 💳 **Pay ₹49** - Lifetime unlimited access
-        """)
+        # Razorpay Payment Button (compact version)
+        self.show_razorpay_button_compact()
 
     def show_razorpay_button(self):
         """Display Razorpay payment button with JavaScript"""
@@ -241,6 +222,40 @@ class PaymentHandler:
         """
 
         st.components.v1.html(razorpay_html, height=200)
+
+    def show_razorpay_button_compact(self):
+        """Display compact Razorpay payment button"""
+        import os
+
+        razorpay_key = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
+
+        razorpay_html = f"""
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <script>
+        function initiatePayment() {{
+            var options = {{
+                "key": "{razorpay_key}",
+                "amount": "4900",
+                "currency": "INR",
+                "name": "Home Loan Comparison",
+                "description": "Lifetime Access",
+                "handler": function (response) {{
+                    window.location.href = window.location.href + "?payment_id=" + response.razorpay_payment_id;
+                }},
+                "theme": {{"color": "#2E7D32"}}
+            }};
+            var rzp = new Razorpay(options);
+            rzp.open();
+        }}
+        </script>
+        <div style="text-align: center; margin: 0.5rem 0;">
+            <button onclick="initiatePayment()" style="background: #2E7D32; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;">
+                Pay ₹49 Now
+            </button>
+        </div>
+        """
+
+        st.components.v1.html(razorpay_html, height=80)
 
     def verify_payment(self, payment_id):
         """Verify payment and grant access"""
