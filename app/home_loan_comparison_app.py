@@ -565,8 +565,8 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-# Show personalized rate breakdown if in personalized mode
-if use_personalized and user_profile:
+# Show personalized rate breakdown if in personalized mode (but not when using custom rates)
+if use_personalized and user_profile and not enable_manual_rates:
     st.markdown("### 🎯 Your Personalized Rate Breakdown")
 
     col_rate1, col_rate2 = st.columns(2)
