@@ -4,6 +4,13 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 from datetime import datetime
+import sys
+import os
+
+# Add utils directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'utils'))
+from rate_loader import get_bank_data_for_app, get_update_status_message
+from rate_calculator import calculate_personalized_rate, get_profile_impact_summary
 
 # Note: Page configuration is set in home_loan_with_payment.py (wrapper file)
 # to avoid duplicate set_page_config error
@@ -57,24 +64,6 @@ st.markdown("""
 # Title
 st.markdown('<div class="main-header">🏠 Home Loan: EMI vs Overdraft Comparison</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Discover if Home Loan Overdraft (Like SBI MaxGain) Can Save You Lakhs in Interest</div>', unsafe_allow_html=True)
-
-# Bank data for home loans
-BANK_DATA = {
-    "Regular Home Loan (EMI)": {
-        "HDFC Bank": {"interest_rate": 8.60, "processing_fee": 0.50, "min_processing": 3000, "prepayment_charge": 0.0},
-        "ICICI Bank": {"interest_rate": 8.75, "processing_fee": 0.50, "min_processing": 3500, "prepayment_charge": 0.0},
-        "SBI": {"interest_rate": 8.50, "processing_fee": 0.00, "min_processing": 0, "prepayment_charge": 0.0},
-        "Axis Bank": {"interest_rate": 8.75, "processing_fee": 1.00, "min_processing": 10000, "prepayment_charge": 0.0},
-        "Bank of Baroda": {"interest_rate": 8.40, "processing_fee": 0.50, "min_processing": 7500, "prepayment_charge": 0.0},
-        "PNB": {"interest_rate": 8.55, "processing_fee": 0.50, "min_processing": 5000, "prepayment_charge": 0.0},
-    },
-    "Home Loan with Overdraft": {
-        "SBI MaxGain": {"interest_rate": 8.75, "processing_fee": 0.00, "min_processing": 0, "od_charge": 10000, "min_loan": 2000000},
-        "ICICI Home Overdraft": {"interest_rate": 9.00, "processing_fee": 0.50, "min_processing": 3500, "od_charge": 0, "min_loan": 2500000},
-        "HDFC Overdraft": {"interest_rate": 8.85, "processing_fee": 0.50, "min_processing": 3000, "od_charge": 5000, "min_loan": 2000000},
-        "BoB Home Advantage": {"interest_rate": 8.65, "processing_fee": 0.50, "min_processing": 7500, "od_charge": 5000, "min_loan": 1500000},
-    }
-}
 
 # Sidebar - Input Parameters
 st.sidebar.header("📊 Loan Parameters")
@@ -169,6 +158,72 @@ withdrawal_pattern = st.sidebar.radio(
     options=["No Withdrawals", "Occasional Withdrawals"],
     help="Will you withdraw from OD account?"
 )
+
+# Interest Rate Mode Selection
+st.sidebar.subheader("💳 Interest Rate Mode")
+rate_mode = st.sidebar.radio(
+    "Choose Rate Mode",
+    options=["Standard Rates", "Personalized Rates"],
+    help="Standard: Base rates from banks | Personalized: Rates adjusted for your profile"
+)
+
+# User profile inputs (only show if Personalized mode selected)
+user_profile = {}
+if rate_mode == "Personalized Rates":
+    st.sidebar.markdown("**Your Profile**")
+
+    user_profile['credit_score'] = st.sidebar.selectbox(
+        "Credit Score",
+        options=['750+', '700-749', '650-699', '<650'],
+        index=0,
+        help="Higher score = Lower interest rate"
+    )
+
+    user_profile['age'] = st.sidebar.slider(
+        "Age",
+        min_value=23,
+        max_value=62,
+        value=35,
+        help="Age 25-35 gets best rates"
+    )
+
+    user_profile['gender'] = st.sidebar.radio(
+        "Gender",
+        options=['Male', 'Female', 'Other'],
+        help="Women borrowers get 0.05% concession"
+    )
+
+    user_profile['employment'] = st.sidebar.selectbox(
+        "Employment Type",
+        options=['Salaried-Govt', 'Salaried-MNC', 'Salaried-Other', 'Self-Employed'],
+        index=2,
+        help="Government/MNC employees get better rates"
+    )
+
+    user_profile['loan_amount'] = loan_amount  # Use the loan amount from above
+
+    user_profile['property_location'] = st.sidebar.selectbox(
+        "Property Location",
+        options=['Metro Tier-1', 'Tier-2', 'Tier-3'],
+        index=0,
+        help="Metro properties get better rates"
+    )
+
+# Load bank data (standard or personalized)
+use_personalized = (rate_mode == "Personalized Rates")
+BANK_DATA, last_updated = get_bank_data_for_app(
+    use_personalized=use_personalized,
+    user_profile=user_profile if use_personalized else None
+)
+
+# Show rate update status
+update_msg, update_color = get_update_status_message(last_updated)
+if update_color == "green":
+    st.sidebar.success(f"📅 {update_msg}")
+elif update_color == "orange":
+    st.sidebar.warning(f"📅 {update_msg}")
+else:
+    st.sidebar.error(f"📅 {update_msg}")
 
 # Bank selection
 st.sidebar.subheader("Select Banks to Compare")
@@ -457,6 +512,61 @@ else:
     Overdraft works best when you can park significant surplus funds regularly.
     </div>
     """, unsafe_allow_html=True)
+
+# Show personalized rate breakdown if in personalized mode
+if use_personalized and user_profile:
+    st.markdown("### 🎯 Your Personalized Rate Breakdown")
+
+    col_rate1, col_rate2 = st.columns(2)
+
+    with col_rate1:
+        # Get base and personalized rates for regular loan
+        regular_base = BANK_DATA["Regular Home Loan (EMI)"][selected_regular_bank].get('base_rate', regular_loan['interest_rate'])
+        regular_final = regular_loan['interest_rate']
+
+        st.markdown(f"**{selected_regular_bank} (Regular Loan)**")
+        st.markdown(f"- Base Rate: **{regular_base}%**")
+        st.markdown(f"- Your Rate: **{regular_final}%**")
+        if regular_final != regular_base:
+            diff = regular_final - regular_base
+            if diff > 0:
+                st.markdown(f"- Adjustment: **+{diff:.2f}%** ⬆️")
+            else:
+                st.markdown(f"- Adjustment: **{diff:.2f}%** ⬇️")
+
+    with col_rate2:
+        # Get base and personalized rates for OD loan
+        od_base = BANK_DATA["Home Loan with Overdraft"][selected_od_bank].get('base_rate', od_loan['interest_rate'])
+        od_final = od_loan['interest_rate']
+
+        st.markdown(f"**{selected_od_bank} (OD Loan)**")
+        st.markdown(f"- Base Rate: **{od_base}%**")
+        st.markdown(f"- Your Rate: **{od_final}%**")
+        if od_final != od_base:
+            diff = od_final - od_base
+            if diff > 0:
+                st.markdown(f"- Adjustment: **+{diff:.2f}%** ⬆️")
+            else:
+                st.markdown(f"- Adjustment: **{diff:.2f}%** ⬇️")
+
+    # Show profile impact summary
+    st.markdown("**💳 Profile Impact on Your Rates:**")
+
+    # Calculate adjustments for display
+    from rate_calculator import calculate_personalized_rate, get_profile_impact_summary
+    result = calculate_personalized_rate(regular_base, user_profile)
+    summary = get_profile_impact_summary(result['adjustments'], user_profile)
+
+    if summary:
+        for desc, adj_value, emoji in summary:
+            if adj_value < 0:
+                st.markdown(f"- {emoji} {desc}: **{adj_value:+.2f}%**")
+            else:
+                st.markdown(f"- {emoji} {desc}: **{adj_value:+.2f}%**")
+    else:
+        st.markdown("- ✅ No adjustments (standard profile)")
+
+    st.info("💡 **Tip**: Improving your credit score or choosing a metro property can further reduce your interest rate!")
 
 # Important warning about OD
 st.markdown(f"""
