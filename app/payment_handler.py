@@ -6,7 +6,14 @@ import json
 from datetime import datetime, timedelta
 import hashlib
 import os
-import extra_streamlit_components as stx
+
+# Try to import cookie manager, fallback to None if not available
+try:
+    import extra_streamlit_components as stx
+    COOKIES_AVAILABLE = True
+except ImportError:
+    stx = None
+    COOKIES_AVAILABLE = False
 
 # Admin emails with free unlimited access
 ADMIN_EMAILS = [
@@ -31,8 +38,14 @@ class PaymentHandler:
     """Handle payment verification and access control with persistent storage"""
 
     def __init__(self):
-        # Initialize cookie manager
-        self.cookie_manager = stx.CookieManager()
+        # Initialize cookie manager (only if available)
+        if COOKIES_AVAILABLE:
+            try:
+                self.cookie_manager = stx.CookieManager()
+            except Exception:
+                self.cookie_manager = None
+        else:
+            self.cookie_manager = None
 
         # Initialize session state for payment
         if 'payment_verified' not in st.session_state:
@@ -155,6 +168,8 @@ class PaymentHandler:
 
     def set_access_cookie(self, payment_id):
         """Set persistent cookie for access"""
+        if not self.cookie_manager:
+            return False
         try:
             expiry_date = datetime.now() + timedelta(days=COOKIE_EXPIRY_DAYS)
             self.cookie_manager.set(
@@ -169,6 +184,8 @@ class PaymentHandler:
 
     def get_access_cookie(self):
         """Get access cookie value"""
+        if not self.cookie_manager:
+            return None
         try:
             cookies = self.cookie_manager.get_all()
             if cookies and COOKIE_NAME in cookies:
