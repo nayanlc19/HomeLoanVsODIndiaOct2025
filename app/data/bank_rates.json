@@ -1,0 +1,100 @@
+{
+  "last_updated": "2025-10-14",
+  "data_source": "Manual entry based on bank websites (Oct 2025)",
+  "update_frequency": "Weekly via GitHub Actions",
+  "rates": {
+    "regular_loans": {
+      "HDFC Bank": {
+        "base_rate": 8.60,
+        "range": "8.40-8.80",
+        "processing_fee": 0.50,
+        "min_processing": 3000,
+        "prepayment_charge": 0.0,
+        "source_url": "https://www.hdfc.com/checklist/home-loan-interest-rates"
+      },
+      "ICICI Bank": {
+        "base_rate": 8.75,
+        "range": "8.60-8.90",
+        "processing_fee": 0.50,
+        "min_processing": 3500,
+        "prepayment_charge": 0.0,
+        "source_url": "https://www.icicibank.com/personal-banking/loans/home-loan/interest-rates"
+      },
+      "SBI": {
+        "base_rate": 8.50,
+        "range": "8.35-8.65",
+        "processing_fee": 0.00,
+        "min_processing": 0,
+        "prepayment_charge": 0.0,
+        "source_url": "https://sbi.bank.in/web/interest-rates"
+      },
+      "Axis Bank": {
+        "base_rate": 8.75,
+        "range": "8.60-8.90",
+        "processing_fee": 1.00,
+        "min_processing": 10000,
+        "prepayment_charge": 0.0,
+        "source_url": "https://www.axisbank.com/retail/loans/home-loan"
+      },
+      "Bank of Baroda": {
+        "base_rate": 8.40,
+        "range": "8.25-8.55",
+        "processing_fee": 0.50,
+        "min_processing": 7500,
+        "prepayment_charge": 0.0,
+        "source_url": "https://www.bankofbaroda.in/personal-banking/loans/home-loan"
+      },
+      "PNB": {
+        "base_rate": 8.55,
+        "range": "8.40-8.70",
+        "processing_fee": 0.50,
+        "min_processing": 5000,
+        "prepayment_charge": 0.0,
+        "source_url": "https://www.pnbindia.in/home-loan.html"
+      }
+    },
+    "od_loans": {
+      "SBI MaxGain": {
+        "base_rate": 8.75,
+        "range": "8.60-9.05",
+        "processing_fee": 0.00,
+        "min_processing": 0,
+        "od_charge": 10000,
+        "min_loan": 2000000,
+        "source_url": "https://sbi.bank.in/web/personal-banking/loans/home-loan/maxgain"
+      },
+      "ICICI Home Overdraft": {
+        "base_rate": 9.00,
+        "range": "8.85-9.15",
+        "processing_fee": 0.50,
+        "min_processing": 3500,
+        "od_charge": 0,
+        "min_loan": 2500000,
+        "source_url": "https://www.icicibank.com/personal-banking/loans/home-loan/home-overdraft-interest-rate"
+      },
+      "HDFC Overdraft": {
+        "base_rate": 8.85,
+        "range": "8.70-9.00",
+        "processing_fee": 0.50,
+        "min_processing": 3000,
+        "od_charge": 5000,
+        "min_loan": 2000000,
+        "source_url": "https://www.hdfc.com/home-loan-overdraft"
+      },
+      "BoB Home Advantage": {
+        "base_rate": 8.65,
+        "range": "8.50-8.80",
+        "processing_fee": 0.50,
+        "min_processing": 7500,
+        "od_charge": 5000,
+        "min_loan": 1500000,
+        "source_url": "https://www.bankofbaroda.in/personal-banking/loans/home-loan/bob-home-advantage"
+      }
+    }
+  },
+  "notes": {
+    "personalization": "Actual rates vary by credit score, age, gender, employment, loan amount, and property location",
+    "rate_range": "Range shows typical variation based on customer profile",
+    "disclaimer": "These are indicative rates. Actual rates depend on your credit profile and bank's discretion. Always verify with bank before applying."
+  }
+}
