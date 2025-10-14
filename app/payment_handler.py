@@ -291,19 +291,13 @@ class PaymentHandler:
 
         # Check if free trial is active
         if self.is_trial_active():
-            # Show countdown timer
+            # Show countdown timer in sidebar (without auto-refresh)
             remaining = self.get_trial_time_remaining()
             minutes = int(remaining // 60)
             seconds = int(remaining % 60)
 
             # Display timer in sidebar
             st.sidebar.success(f"⏱️ Trial: {minutes}m {seconds}s left")
-
-            # Auto-refresh every second to update timer
-            if remaining > 0:
-                import time
-                time.sleep(1)
-                st.rerun()
 
             return True
 

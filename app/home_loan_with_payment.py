@@ -21,20 +21,17 @@ st.set_page_config(
 # Initialize payment handler
 payment = PaymentHandler()
 
-# Check if user has paid
-has_access = payment.check_access()
+# Check if user has paid (but don't block - just track)
+has_full_access = payment.check_access()
 
-if not has_access:
-    # Show payment wall for non-paid users
-    st.markdown('<div class="main-header">🏠 Home Loan: EMI vs Overdraft Comparison</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Professional Tool to Compare Regular Home Loans with Overdraft Facilities</div>', unsafe_allow_html=True)
-
-    payment.show_payment_wall()
-    payment.show_limited_content()
-
-    st.stop()  # Stop execution here if not paid
-
-# If user has paid, load the full app
+# ALWAYS load the full app first - let users explore
 app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "home_loan_comparison_app.py")
 with open(app_path, 'r', encoding='utf-8') as f:
     exec(f.read())
+
+# Show payment prompt at the END if user doesn't have access
+if not has_full_access:
+    st.markdown("---")
+    st.markdown("## 🎉 Enjoying the tool? Unlock Premium Features!")
+
+    payment.show_payment_wall()
