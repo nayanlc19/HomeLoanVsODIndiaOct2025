@@ -5,13 +5,8 @@ import plotly.express as px
 import numpy as np
 from datetime import datetime
 
-# Page configuration
-st.set_page_config(
-    page_title="Home Loan: EMI vs Overdraft Comparison",
-    page_icon="🏠",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Note: Page configuration is set in home_loan_with_payment.py (wrapper file)
+# to avoid duplicate set_page_config error
 
 # Custom CSS
 st.markdown("""
