@@ -35,4 +35,6 @@ if not has_access:
     st.stop()  # Stop execution here if not paid
 
 # If user has paid, load the full app
-exec(open("home_loan_comparison_app.py").read())
+app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "home_loan_comparison_app.py")
+with open(app_path, 'r', encoding='utf-8') as f:
+    exec(f.read())
