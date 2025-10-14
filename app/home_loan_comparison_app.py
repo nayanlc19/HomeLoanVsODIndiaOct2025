@@ -1859,6 +1859,491 @@ Break-even = (Regular Loan Interest - OD Interest) / (OD Rate - Regular Rate)
 Use the calculator above to see YOUR break-even point!
 """)
 
+# Loan Process Timeline Section
+st.header("⏱️ Loan Process Timeline: Procurement to Disbursement to Closure")
+
+st.markdown("""
+<div class="info-box">
+<strong>📅 Understanding the Journey:</strong> From application to final closure, here's what to expect with realistic timelines and practical issues you'll face.
+</div>
+""", unsafe_allow_html=True)
+
+tab_timeline1, tab_timeline2, tab_timeline3 = st.tabs([
+    "📝 Application to Sanction",
+    "💰 Disbursement Process",
+    "✅ Loan Closure"
+])
+
+with tab_timeline1:
+    st.subheader("Stage 1: Application to Sanction (15-30 Days)")
+
+    st.markdown("### Day 0-3: Application & Initial Documentation")
+    st.markdown("""
+    **What Happens:**
+    - Submit application online or at branch
+    - Upload basic documents (ID, address, income proof)
+    - Pay processing fee (0-1% of loan amount + 18% GST)
+
+    **Documents Required:**
+    - PAN Card, Aadhaar Card
+    - Last 6 months salary slips
+    - Last 1 year bank statements
+    - Form 16 / ITR for last 2 years
+    - Property documents (sale deed, construction agreement)
+
+    **Common Issues:**
+    - ⚠️ **Document Rejection:** Salary slips not matching bank credits
+    - ⚠️ **Bank Statement:** Large unexplained cash deposits raise red flags
+    - ⚠️ **ITR Mismatch:** Declared income vs bank credits don't match
+
+    **Pro Tip:** Have all documents scanned and ready BEFORE applying. Delays here mean delays in sanction.
+    """)
+
+    st.markdown("### Day 4-7: Credit Assessment & CIBIL Check")
+    st.markdown("""
+    **What Happens:**
+    - Bank pulls your CIBIL report
+    - Analyzes your credit history
+    - Calculates debt-to-income ratio
+    - Verifies employment with your HR department
+
+    **Timeline:** 3-5 business days
+
+    **Common Issues:**
+    - ⚠️ **Low CIBIL Score (<700):** Application may be rejected or offered at higher interest rate
+    - ⚠️ **Multiple Loan Enquiries:** Too many applications in last 6 months hurts score
+    - ⚠️ **Existing Loans:** High EMI burden (>50% of income) leads to rejection
+    - ⚠️ **Employment Verification Delay:** If HR doesn't respond, bank escalates to manager
+
+    **Real Case:** Person with 720 CIBIL got 8.85% rate, friend with 780 got 8.50% - difference of ₹2L over 20 years!
+    """)
+
+    st.markdown("### Day 8-12: Property Valuation & Legal Verification")
+    st.markdown("""
+    **What Happens:**
+    - Bank sends valuator to inspect property
+    - Legal team verifies property documents
+    - Checks for legal disputes, clear title
+    - Municipal records verification
+
+    **Timeline:** 5-7 business days
+
+    **Valuation Process:**
+    - Valuator visits property (must be present or send someone)
+    - Checks construction quality, area, location
+    - Compares with recent sales in area
+    - Bank sanctions 75-90% of valuation (not asking price!)
+
+    **Common Issues:**
+    - ⚠️ **Valuation Lower Than Price:** You asked ₹80L, bank values at ₹70L → Loan approved only for ₹56L (80% of ₹70L)
+    - ⚠️ **Title Defects:** Property has legal issues, bank rejects
+    - ⚠️ **Encumbrance Certificate:** Property has existing loan/mortgage
+    - ⚠️ **Approval Issues:** Construction without proper municipal approval
+    - ⚠️ **Builder Reputation:** If builder is blacklisted, loan rejected
+
+    **Pro Tip:** Get independent property legal verification done BEFORE applying. Saves time and rejection pain.
+    """)
+
+    st.markdown("### Day 13-20: Final Assessment & Sanction")
+    st.markdown("""
+    **What Happens:**
+    - Credit manager reviews all reports
+    - Final loan amount decided
+    - Interest rate finalized based on your profile
+    - Sanction letter issued
+
+    **Timeline:** 5-8 business days
+
+    **Sanction Letter Contains:**
+    - Approved loan amount
+    - Interest rate (may be different from advertised rate!)
+    - Tenure approved
+    - Conditions (insurance, EMI account maintenance, etc.)
+    - Validity (usually 3-6 months)
+
+    **Common Issues:**
+    - ⚠️ **Partial Sanction:** Asked ₹50L, sanctioned ₹40L
+    - ⚠️ **Higher Rate:** Expected 8.50%, got 8.85% due to credit profile
+    - ⚠️ **Strict Conditions:** Forced to buy insurance from bank's partner
+    - ⚠️ **Tenure Restriction:** Wanted 20 years, approved only 15 years due to age
+
+    **Regular Loan vs OD Loan Difference:**
+    - **Regular Loan:** 15-20 days typical
+    - **OD Loan:** 20-25 days (extra scrutiny for minimum loan amount eligibility)
+    - **OD Additional Check:** Bank verifies if you have surplus funds to park
+    """)
+
+with tab_timeline2:
+    st.subheader("Stage 2: Disbursement Process (10-30 Days After Sanction)")
+
+    st.markdown("### Day 1-5: Post-Sanction Documentation")
+    st.markdown("""
+    **What Happens:**
+    - Sign loan agreement (50-60 pages!)
+    - Submit post-dated cheques for EMI
+    - Property insurance purchase
+    - Open loan account
+
+    **Timeline:** 3-5 days
+
+    **Documents to Sign:**
+    - Loan agreement
+    - Hypothecation agreement (property mortgaged to bank)
+    - Insurance policy papers
+    - PDC (post-dated cheques) or auto-debit mandate
+    - Guarantor documents (if applicable)
+
+    **Common Issues:**
+    - ⚠️ **Loan Agreement Surprises:** Hidden clauses about penalties, forced products
+    - ⚠️ **Insurance Overpricing:** Bank's partner insurance 30-50% costlier than market
+    - ⚠️ **Cheque Book Delays:** New account cheque book takes 5-7 days
+    - ⚠️ **Guarantor Not Available:** Guarantor must visit branch, sign in person
+
+    **Pro Tip:** Read loan agreement 1 day before signing. Negotiate any unreasonable clauses!
+    """)
+
+    st.markdown("### Day 6-10: Property Registration & Mortgage Creation")
+    st.markdown("""
+    **What Happens:**
+    - Property registered in your name (sub-registrar office)
+    - Pay stamp duty & registration charges (5-7% of property value!)
+    - Bank creates mortgage on property
+    - CERSAI registration for mortgage
+
+    **Timeline:** 5-7 days (can take 2-3 weeks in some states!)
+
+    **Costs Involved:**
+    - Stamp Duty: 5-7% (varies by state)
+    - Registration: 1-2%
+    - Legal fees: ₹5,000-₹20,000
+    - CERSAI charges: ₹50-₹100
+
+    **Example on ₹80L Property:**
+    - Stamp duty (6%): ₹4.8L
+    - Registration (1%): ₹80,000
+    - Legal: ₹15,000
+    - **Total upfront: ₹5.65L** (must arrange yourself!)
+
+    **Common Issues:**
+    - ⚠️ **Cash Crunch:** Many people forget about stamp duty - it's HUGE!
+    - ⚠️ **Sub-Registrar Delays:** Appointments take 1-2 weeks
+    - ⚠️ **Document Errors:** One wrong detail = rejection, start over
+    - ⚠️ **Seller Not Available:** Seller must be present, delays if out of town
+
+    **Regular vs OD Difference:**
+    - **Regular Loan:** Standard process
+    - **OD Loan:** Additional OD account opening (₹5,000-₹10,000 charge)
+    """)
+
+    st.markdown("### Day 11-15: Disbursement Tranches")
+    st.markdown("""
+    **What Happens:**
+    - Bank disburses loan to seller/builder
+    - For under-construction: Disburses in stages
+    - EMI starts from 1st day of disbursement!
+
+    **Timeline:** 2-3 days after registration
+
+    **Disbursement Types:**
+
+    **Type 1: Ready Property (Full Disbursement)**
+    - Bank transfers 100% to seller
+    - EMI starts next month
+    - Simple and fast
+
+    **Type 2: Under-Construction (Tranche-wise)**
+    - Stage 1: Foundation complete → 20% disbursed
+    - Stage 2: Walls up → 30% disbursed
+    - Stage 3: Roof done → 30% disbursed
+    - Stage 4: Possession → 20% disbursed
+    - **Problem:** EMI starts from 1st tranche, but no possession yet!
+
+    **Common Issues:**
+    - ⚠️ **Disbursement to Wrong Account:** Bank error, seller doesn't receive money
+    - ⚠️ **Tranche Delays:** Builder delays construction, next tranche delayed
+    - ⚠️ **Pre-EMI Burden:** Paying EMI on partial amount + rent (double payment!)
+    - ⚠️ **Builder Default:** Builder goes bankrupt, stuck with partial property + full loan!
+
+    **Real Horror Story:**
+    - Person took ₹50L loan for under-construction flat
+    - Builder released ₹30L, EMI started (₹26K/month)
+    - Builder went bankrupt after 2 years
+    - Now paying ₹26K EMI + ₹15K rent = ₹41K outflow
+    - No house for last 3 years, still paying!
+
+    **Pro Tip:** For under-construction, prefer "80:20 scheme" (80% on possession, 20% earlier) to reduce risk.
+    """)
+
+    st.markdown("### Day 16-30: EMI Setup & Loan Activation")
+    st.markdown("""
+    **What Happens:**
+    - First EMI scheduled
+    - Auto-debit mandate activated
+    - Loan account shows on net banking
+    - Welcome kit received
+
+    **Timeline:** 1-2 weeks
+
+    **First EMI Details:**
+    - **Due Date:** Usually 30 days after disbursement
+    - **Amount:** May be prorated if disbursed mid-month
+    - **Mode:** Auto-debit from salary account
+
+    **Common Issues:**
+    - ⚠️ **Auto-debit Not Set Up:** Manual payment needed, may miss deadline
+    - ⚠️ **Wrong EMI Amount Debited:** System error, deducts wrong amount
+    - ⚠️ **Account Balance Low:** Insufficient funds, EMI bounces → penalty!
+    - ⚠️ **No SMS Alerts:** Not enrolled, miss payment reminders
+
+    **OD Loan Specific:**
+    - **Initial Surplus Parking:** If you planned to park ₹5L initially, do it NOW
+    - **OD Account Activation:** Takes 5-7 days to activate fully
+    - **Net Banking for OD:** Separate login/linking needed
+    - **First Month Confusion:** Interest calculated on full amount until surplus parked
+
+    **Pro Tip:** Keep ₹10K extra buffer in EMI account. Avoid first bounce at any cost!
+    """)
+
+with tab_timeline3:
+    st.subheader("Stage 3: Loan Closure Process (30-60 Days)")
+
+    st.markdown("### When to Close: Final Payment Scenarios")
+    st.markdown("""
+    **Scenario 1: Regular Tenure Completion**
+    - EMI paid for full tenure (20 years)
+    - Last EMI auto-debited
+    - Closure automatic
+
+    **Scenario 2: Early Closure / Foreclosure**
+    - You want to close loan before tenure ends
+    - Pay full outstanding in one go
+    - Save future interest
+
+    **Scenario 3: Property Sale**
+    - Selling property before loan closure
+    - Buyer's bank will transfer outstanding to your bank
+    - You get balance amount
+
+    **Timeline for Closure:** 30-60 days (yes, it takes this long!)
+    """)
+
+    st.markdown("### Day 1-5: Foreclosure Application")
+    st.markdown("""
+    **What to Do:**
+    - Request foreclosure statement from bank
+    - Bank calculates exact outstanding amount
+    - Check for any foreclosure charges
+
+    **Timeline:** 2-3 business days
+
+    **What Bank Provides:**
+    - Total outstanding principal
+    - Interest up to foreclosure date
+    - Any pending charges
+    - Foreclosure charges (should be 0% for floating rate!)
+
+    **Common Issues:**
+    - ⚠️ **Foreclosure Charge Despite RBI Rule:** Some banks try to charge 2-3% (illegal for floating rate!)
+    - ⚠️ **Unclear Interest Calculation:** Bank adds 1-2 months extra interest
+    - ⚠️ **Hidden Processing Fee:** ₹5,000-₹10,000 "foreclosure processing fee"
+    - ⚠️ **Statement Delay:** Bank takes 10-15 days instead of 2-3 days
+
+    **Pro Tip:** Demand written confirmation of 0% foreclosure charge. If bank insists on charge, escalate to RBI ombudsman.
+    """)
+
+    st.markdown("### Day 6-10: Payment of Outstanding Amount")
+    st.markdown("""
+    **What to Do:**
+    - Arrange full outstanding amount
+    - Transfer to loan account
+    - Get payment receipt
+
+    **Timeline:** Same day (but processing takes time)
+
+    **Payment Methods:**
+    - NEFT/RTGS to loan account
+    - Demand draft
+    - Cheque (not recommended - takes 3-4 days to clear)
+
+    **Common Issues:**
+    - ⚠️ **Payment Not Reflecting:** Transferred ₹25L, but loan shows same outstanding
+    - ⚠️ **Transaction Limit:** NEFT limit is ₹10L, need multiple transactions
+    - ⚠️ **Weekend Delays:** Payment on Friday, reflects on Monday
+    - ⚠️ **Interest Keeps Accruing:** Even after payment, interest calculated until bank processes
+
+    **Pro Tip:** Make payment on 1st of month to minimize interest accrual during processing.
+    """)
+
+    st.markdown("### Day 11-30: Loan Closure Certificate & NOC")
+    st.markdown("""
+    **What Happens:**
+    - Bank processes closure internally
+    - Generates Loan Closure Certificate
+    - Issues No Objection Certificate (NOC)
+    - Updates CIBIL as "Closed"
+
+    **Timeline:** 15-20 days (banks are VERY slow here!)
+
+    **Documents You'll Receive:**
+    - Loan Closure Certificate
+    - No Objection Certificate (NOC)
+    - Original property documents
+    - Release letter for mortgage
+
+    **Common Issues:**
+    - ⚠️ **Document Delays:** Bank takes 30-45 days instead of 15 days
+    - ⚠️ **Missing Documents:** Original papers lost in bank custody
+    - ⚠️ **Wrong NOC:** Name spelling wrong, needs reissue
+    - ⚠️ **CIBIL Not Updated:** Loan shows "Active" even after closure
+
+    **Real Frustration:**
+    - Person closed ₹40L loan
+    - Bank took 3 months to give closure certificate
+    - Had to visit branch 8 times
+    - Needed documents for new property purchase - got delayed!
+
+    **Pro Tip:** Start following up after Day 10. Call every 3 days. Escalate to branch manager if needed.
+    """)
+
+    st.markdown("### Day 31-60: Mortgage Release & Final Closure")
+    st.markdown("""
+    **What to Do:**
+    - Visit sub-registrar office with NOC
+    - Release mortgage from property
+    - Update property records
+    - Get updated property documents
+
+    **Timeline:** 15-30 days
+
+    **Process:**
+    1. Take NOC + Closure Certificate to sub-registrar
+    2. Pay mortgage release fee (₹500-₹2,000)
+    3. Submit documents
+    4. Appointment scheduled (1-2 weeks wait!)
+    5. Visit on appointment day
+    6. Mortgage removed from records
+    7. Updated documents issued
+
+    **Common Issues:**
+    - ⚠️ **Appointment Delays:** Sub-registrar slots full for 3-4 weeks
+    - ⚠️ **Document Mismatch:** Bank's NOC details don't match property records
+    - ⚠️ **Bank Representative Required:** Some offices need bank person present
+    - ⚠️ **Online Not Available:** Must visit physically, take leave from work
+
+    **After Completion:**
+    - ✅ Property is 100% yours (no mortgage)
+    - ✅ Can sell without bank involvement
+    - ✅ Can take loan on this property again
+    - ✅ Can gift/transfer freely
+
+    **Pro Tip:** Do mortgage release immediately. Many people delay and face issues when selling later!
+    """)
+
+    st.markdown("### CIBIL Update Verification")
+    st.markdown("""
+    **Critical Final Step:** Verify loan shows as "CLOSED" in CIBIL
+
+    **Timeline:** 30-45 days after closure
+
+    **How to Check:**
+    1. Visit www.cibil.com after 45 days of closure
+    2. Pull your credit report (₹550)
+    3. Check loan status: Should show "CLOSED" or "PAID"
+
+    **Common Issues:**
+    - ⚠️ **Still Shows Active:** Bank didn't update CIBIL
+    - ⚠️ **Shows as Settled:** Banks sometimes mark as "Settled" (negative!) instead of "Closed"
+    - ⚠️ **Outstanding Shows Non-Zero:** Shows ₹500 or ₹1,000 outstanding
+
+    **What to Do If Not Updated:**
+    1. Raise dispute on CIBIL website
+    2. Attach loan closure certificate
+    3. Email bank's nodal officer
+    4. If not resolved in 30 days: Complaint to RBI ombudsman
+
+    **Why It Matters:**
+    - If shows "Active", you can't get another home loan
+    - If shows "Settled", future loans will be rejected or expensive
+    - Correct "Closed" status improves your credit score by 20-30 points!
+    """)
+
+st.markdown("### ⏰ Complete Timeline Summary")
+
+timeline_summary = pd.DataFrame({
+    "Stage": [
+        "Application & Docs",
+        "Credit Assessment",
+        "Property Valuation",
+        "Sanction",
+        "Post-Sanction Docs",
+        "Registration",
+        "Disbursement",
+        "First EMI Start",
+        "Foreclosure Application",
+        "Payment Processing",
+        "Closure Certificate",
+        "Mortgage Release"
+    ],
+    "Timeline": [
+        "0-3 days",
+        "4-7 days",
+        "8-12 days",
+        "13-20 days",
+        "1-5 days",
+        "6-10 days",
+        "11-15 days",
+        "30 days after",
+        "1-5 days",
+        "6-10 days",
+        "11-30 days",
+        "31-60 days"
+    ],
+    "Common Issues": [
+        "Document rejection, salary slip mismatch",
+        "Low CIBIL, existing loan EMIs high",
+        "Low valuation, title defects",
+        "Partial sanction, higher rate offered",
+        "Forced insurance, loan agreement surprises",
+        "Stamp duty shock, seller unavailable",
+        "Builder default, wrong account transfer",
+        "Auto-debit failure, insufficient balance",
+        "Hidden foreclosure charges despite RBI rule",
+        "Payment not reflecting, weekend delays",
+        "Bank delays, missing original documents",
+        "Appointment delays, bank rep required"
+    ],
+    "Pro Tips": [
+        "Prepare all docs before applying",
+        "Clear existing loans, improve CIBIL first",
+        "Get independent valuation done",
+        "Negotiate rate, read sanction conditions",
+        "Read agreement, negotiate insurance",
+        "Arrange stamp duty in advance",
+        "Prefer 80:20 for under-construction",
+        "Keep ₹10K buffer in account",
+        "Demand written 0% charge confirmation",
+        "Pay on 1st to minimize interest accrual",
+        "Follow up every 3 days after Day 10",
+        "Do immediately, verify CIBIL after 45 days"
+    ]
+})
+
+st.dataframe(timeline_summary, use_container_width=True, hide_index=True)
+
+st.markdown("""
+<div class="warning-box">
+<strong>💡 Reality Check:</strong>
+<br><br>
+<strong>Regular Home Loan:</strong> Total time from application to disbursement: 25-40 days (if everything goes smooth)
+<br>
+<strong>Overdraft Loan:</strong> Total time: 30-45 days (additional scrutiny + OD account setup)
+<br>
+<strong>Loan Closure:</strong> Total time: 30-60 days (banks are slow with closure documentation)
+<br><br>
+<strong>Add Buffers:</strong> Always add 10-15 days buffer for unexpected delays. Murphy's Law applies to home loans!
+</div>
+""", unsafe_allow_html=True)
+
 # Footer
 st.markdown("---")
 st.markdown("""
