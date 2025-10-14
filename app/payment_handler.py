@@ -101,30 +101,35 @@ class PaymentHandler:
         </style>
         """, unsafe_allow_html=True)
 
+        # Title section
+        st.markdown('<div class="payment-wall">', unsafe_allow_html=True)
+        st.markdown('<h1 style="color: white; text-align: center;">🏠 Unlock Full Home Loan Analysis</h1>', unsafe_allow_html=True)
+        st.markdown('<div class="price-tag">₹49 Only</div>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size: 1.2rem; color: white; text-align: center;">One-time payment • Lifetime access</p>', unsafe_allow_html=True)
+
+        # Features list using Streamlit markdown
         st.markdown("""
-        <div class="payment-wall">
-            <h1>🏠 Unlock Full Home Loan Analysis</h1>
-            <div class="price-tag">₹49 Only</div>
-            <p style="font-size: 1.2rem;">One-time payment • Lifetime access</p>
+        <div style="color: white; text-align: left; max-width: 600px; margin: 2rem auto; font-size: 1.1rem;">
+        <h3 style="color: white; text-align: center;">✨ What You'll Get:</h3>
+        </div>
+        """, unsafe_allow_html=True)
 
-            <div class="feature-list">
-                <h3>✨ What You'll Get:</h3>
-                <ul>
-                    <li>✅ Complete loan comparison (Regular vs Overdraft)</li>
-                    <li>✅ Compare ALL major banks (HDFC, ICICI, SBI, Axis, BOB, PNB)</li>
-                    <li>✅ Tax benefit calculations (80C + 24b)</li>
-                    <li>✅ Advanced prepayment strategies</li>
-                    <li>✅ Year-by-year breakdown</li>
-                    <li>✅ Interactive charts & visualizations</li>
-                    <li>✅ Hidden charges analysis</li>
-                    <li>✅ Smart tips to save lakhs</li>
-                    <li>✅ EMI vs OD detailed comparison</li>
-                </ul>
-            </div>
+        st.markdown("""
+        - ✅ Complete loan comparison (Regular vs Overdraft)
+        - ✅ Compare ALL major banks (HDFC, ICICI, SBI, Axis, BOB, PNB)
+        - ✅ Tax benefit calculations (80C + 24b)
+        - ✅ Advanced prepayment strategies
+        - ✅ Year-by-year breakdown
+        - ✅ Interactive charts & visualizations
+        - ✅ Hidden charges analysis
+        - ✅ Smart tips to save lakhs
+        - ✅ EMI vs OD detailed comparison
+        """)
 
-            <p style="font-size: 0.9rem; opacity: 0.9;">
-                💡 This tool has helped thousands save ₹5-10 lakhs on their home loans!
-            </p>
+        st.markdown("""
+        <p style="font-size: 0.9rem; opacity: 0.9; color: white; text-align: center;">
+        💡 This tool has helped thousands save ₹5-10 lakhs on their home loans!
+        </p>
         </div>
         """, unsafe_allow_html=True)
 
