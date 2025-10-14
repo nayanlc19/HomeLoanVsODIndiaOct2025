@@ -89,6 +89,9 @@ if not has_access:
     st.markdown("---")
     st.info("👆 Choose any option above to unlock full access!")
 
+    # Show admin access in footer
+    payment.show_admin_footer()
+
     # Stop execution - don't load the app
     st.stop()
 

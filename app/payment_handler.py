@@ -1,10 +1,12 @@
 """
-Payment Handler for Razorpay Integration with Admin Bypass and Free Trial
+Payment Handler for Razorpay Integration with Cookie Persistence and Email Database
 """
 import streamlit as st
 import json
 from datetime import datetime, timedelta
 import hashlib
+import os
+import extra_streamlit_components as stx
 
 # Admin emails with free unlimited access
 ADMIN_EMAILS = [
@@ -18,10 +20,20 @@ FREE_TRIAL_MINUTES = 3
 # Maximum number of trials per IP address
 MAX_TRIALS_PER_IP = 5
 
+# Cookie settings
+COOKIE_NAME = "home_loan_access"
+COOKIE_EXPIRY_DAYS = 90
+
+# Path to paid users database
+PAID_USERS_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "paid_users.json")
+
 class PaymentHandler:
-    """Handle payment verification and access control"""
+    """Handle payment verification and access control with persistent storage"""
 
     def __init__(self):
+        # Initialize cookie manager
+        self.cookie_manager = stx.CookieManager()
+
         # Initialize session state for payment
         if 'payment_verified' not in st.session_state:
             st.session_state.payment_verified = False
@@ -39,6 +51,8 @@ class PaymentHandler:
             st.session_state.trial_count = 0
         if 'trial_history' not in st.session_state:
             st.session_state.trial_history = []  # Store completed trial timestamps
+        if 'user_email' not in st.session_state:
+            st.session_state.user_email = None
 
     def check_admin_email(self, email):
         """Check if email is in admin list"""
@@ -92,6 +106,77 @@ class PaymentHandler:
 
         return True
 
+    def load_paid_users(self):
+        """Load paid users database from JSON file"""
+        try:
+            if os.path.exists(PAID_USERS_DB):
+                with open(PAID_USERS_DB, 'r') as f:
+                    return json.load(f)
+            return {}
+        except Exception as e:
+            st.error(f"Error loading user database: {e}")
+            return {}
+
+    def save_paid_user(self, email, payment_id):
+        """Save paid user to database"""
+        try:
+            # Load existing data
+            users = self.load_paid_users()
+
+            # Add new user
+            users[email.lower().strip()] = {
+                "payment_id": payment_id,
+                "timestamp": datetime.now().isoformat(),
+                "access_granted": True
+            }
+
+            # Save to file
+            os.makedirs(os.path.dirname(PAID_USERS_DB), exist_ok=True)
+            with open(PAID_USERS_DB, 'w') as f:
+                json.dump(users, f, indent=2)
+
+            return True
+        except Exception as e:
+            st.error(f"Error saving user: {e}")
+            return False
+
+    def verify_email(self, email):
+        """Verify if email exists in paid users database"""
+        users = self.load_paid_users()
+        return email.lower().strip() in users
+
+    def get_user_payment_id(self, email):
+        """Get payment ID for a user email"""
+        users = self.load_paid_users()
+        user_data = users.get(email.lower().strip())
+        if user_data:
+            return user_data.get("payment_id")
+        return None
+
+    def set_access_cookie(self, payment_id):
+        """Set persistent cookie for access"""
+        try:
+            expiry_date = datetime.now() + timedelta(days=COOKIE_EXPIRY_DAYS)
+            self.cookie_manager.set(
+                COOKIE_NAME,
+                payment_id,
+                expires_at=expiry_date
+            )
+            return True
+        except Exception as e:
+            # Cookie setting might fail in some environments, continue anyway
+            return False
+
+    def get_access_cookie(self):
+        """Get access cookie value"""
+        try:
+            cookies = self.cookie_manager.get_all()
+            if cookies and COOKIE_NAME in cookies:
+                return cookies[COOKIE_NAME]
+        except Exception as e:
+            pass
+        return None
+
     def show_payment_wall(self):
         """Display compact payment wall for unpaid users"""
         st.markdown("""
@@ -116,23 +201,10 @@ class PaymentHandler:
         st.markdown('<p style="color: white; margin-bottom: 0.5rem;">🔒 <strong>Unlock Full Access</strong> to compare all banks, see detailed breakdowns, tax strategies & save lakhs!</p>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Three columns for options
-        col1, col2, col3 = st.columns(3)
+        # Two columns for options (removed admin from main area)
+        col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("**🔓 Admin Access**")
-            admin_email = st.text_input("Email:", key="admin_email_input", label_visibility="collapsed", placeholder="Admin email")
-            if st.button("Verify", key="verify_admin"):
-                if self.check_admin_email(admin_email):
-                    st.session_state.is_admin = True
-                    st.session_state.admin_email = admin_email
-                    st.session_state.payment_verified = True
-                    st.success("✅ Access granted!")
-                    st.rerun()
-                else:
-                    st.error("❌ Not authorized")
-
-        with col2:
             st.markdown("**🎁 Free Trials**")
             trial_remaining = self.get_trial_time_remaining()
             trials_left = self.get_remaining_trials()
@@ -150,7 +222,7 @@ class PaymentHandler:
                 else:
                     st.error("No trials left")
 
-        with col3:
+        with col2:
             st.markdown("**💳 Pay Once**")
             st.markdown("₹49 only • Lifetime")
             # Razorpay button will be shown below
@@ -158,89 +230,79 @@ class PaymentHandler:
         # Razorpay Payment Button (compact version)
         self.show_razorpay_button_compact()
 
-    def show_razorpay_button(self):
-        """Display Razorpay payment button with JavaScript"""
-        import os
+        # Returning User Section
+        st.markdown("---")
+        st.markdown("### 🔄 Returning User?")
 
-        # Razorpay configuration - use environment variables for Render deployment
-        razorpay_key = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
+        col_a, col_b = st.columns([2, 1])
 
-        razorpay_html = f"""
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        <script>
-        function initiatePayment() {{
-            var options = {{
-                "key": "{razorpay_key}",
-                "amount": "4900", // Amount in paise (₹49.00)
-                "currency": "INR",
-                "name": "Home Loan Comparison Tool",
-                "description": "Unlock Full Access",
-                "image": "https://cdn-icons-png.flaticon.com/512/609/609803.png",
-                "handler": function (response) {{
-                    // Payment successful
-                    alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+        with col_a:
+            user_email = st.text_input(
+                "Enter your registered email:",
+                key="returning_user_email",
+                placeholder="your.email@example.com",
+                help="Enter the email you used during payment"
+            )
 
-                    // Store payment info in session
-                    window.parent.postMessage({{
-                        type: 'payment_success',
-                        payment_id: response.razorpay_payment_id,
-                        order_id: response.razorpay_order_id,
-                        signature: response.razorpay_signature
-                    }}, '*');
-
-                    // Redirect to verification
-                    window.location.href = window.location.href + "?payment_id=" + response.razorpay_payment_id;
-                }},
-                "prefill": {{
-                    "name": "",
-                    "email": "",
-                    "contact": ""
-                }},
-                "theme": {{
-                    "color": "#2E7D32"
-                }},
-                "modal": {{
-                    "ondismiss": function() {{
-                        alert("Payment cancelled. You can try again anytime!");
-                    }}
-                }}
-            }};
-
-            var rzp = new Razorpay(options);
-            rzp.open();
-        }}
-        </script>
-
-        <div style="text-align: center; margin-top: 2rem;">
-            <button onclick="initiatePayment()" class="razorpay-button">
-                💳 Pay ₹49 & Unlock Now
-            </button>
-            <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
-                🔒 Secure payment powered by Razorpay
-            </p>
-        </div>
-        """
-
-        st.components.v1.html(razorpay_html, height=200)
+        with col_b:
+            st.markdown("<br>", unsafe_allow_html=True)  # Spacing
+            if st.button("Verify Access", key="verify_returning_user", type="secondary"):
+                if user_email:
+                    if self.verify_email(user_email):
+                        payment_id = self.get_user_payment_id(user_email)
+                        st.session_state.payment_verified = True
+                        st.session_state.payment_id = payment_id
+                        st.session_state.user_email = user_email
+                        self.set_access_cookie(payment_id)
+                        st.success("✅ Access restored! Welcome back!")
+                        st.balloons()
+                        st.rerun()
+                    else:
+                        st.error("❌ Email not found. Please check your email or complete payment.")
+                else:
+                    st.warning("Please enter your email address")
 
     def show_razorpay_button_compact(self):
-        """Display compact Razorpay payment button"""
+        """Display compact Razorpay payment button with email collection"""
         import os
 
         razorpay_key = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
+
+        # Add email input field before payment
+        st.markdown("**Enter your email to receive access link:**")
+        payment_email = st.text_input(
+            "Email Address:",
+            key="payment_email_input",
+            placeholder="your.email@example.com",
+            help="We'll save this for future access",
+            label_visibility="collapsed"
+        )
 
         razorpay_html = f"""
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
         function initiatePayment() {{
+            // Get email from input field
+            var email = window.parent.document.querySelector('input[aria-label="Email Address:"]');
+            var emailValue = email ? email.value : '';
+
+            if (!emailValue || !emailValue.includes('@')) {{
+                alert('Please enter a valid email address before proceeding with payment');
+                return;
+            }
+
             var options = {{
                 "key": "{razorpay_key}",
                 "amount": "4900",
                 "currency": "INR",
                 "name": "Home Loan Comparison",
                 "description": "Lifetime Access",
+                "prefill": {{
+                    "email": emailValue
+                }},
                 "handler": function (response) {{
-                    window.location.href = window.location.href + "?payment_id=" + response.razorpay_payment_id;
+                    // Store email in URL for processing
+                    window.location.href = window.location.href.split('?')[0] + "?payment_id=" + response.razorpay_payment_id + "&email=" + encodeURIComponent(emailValue);
                 }},
                 "theme": {{"color": "#2E7D32"}}
             }};
@@ -257,15 +319,24 @@ class PaymentHandler:
 
         st.components.v1.html(razorpay_html, height=80)
 
-    def verify_payment(self, payment_id):
+    def verify_payment(self, payment_id, email=None):
         """Verify payment and grant access"""
         # In production, verify with Razorpay API
-        # For now, we'll use session state
+        # For now, we'll use session state and save to database
 
         if payment_id:
             st.session_state.payment_verified = True
             st.session_state.payment_id = payment_id
             st.session_state.access_expiry = None  # Lifetime access
+
+            # Save to database if email provided
+            if email:
+                st.session_state.user_email = email
+                self.save_paid_user(email, payment_id)
+
+            # Set persistent cookie
+            self.set_access_cookie(payment_id)
+
             return True
         return False
 
@@ -276,16 +347,26 @@ class PaymentHandler:
         if st.session_state.is_admin:
             return True
 
-        # Check URL parameters for payment_id
+        # Check persistent cookie first
+        cookie_payment_id = self.get_access_cookie()
+        if cookie_payment_id:
+            st.session_state.payment_verified = True
+            st.session_state.payment_id = cookie_payment_id
+            return True
+
+        # Check URL parameters for payment_id (new payment)
         query_params = st.query_params
         if 'payment_id' in query_params:
             payment_id = query_params['payment_id']
-            if self.verify_payment(payment_id):
-                st.success("✅ Payment verified! You now have full access.")
+            email = query_params.get('email', None)
+            if self.verify_payment(payment_id, email):
+                st.success("✅ Payment verified! You now have lifetime access.")
+                if email:
+                    st.info(f"💌 Access saved for: {email}")
                 st.balloons()
                 return True
 
-        # Check if payment was already verified
+        # Check if payment was already verified in session
         if st.session_state.payment_verified:
             return True
 
@@ -302,6 +383,29 @@ class PaymentHandler:
             return True
 
         return False
+
+    def show_admin_footer(self):
+        """Show admin access in footer with expander"""
+        st.markdown("---")
+
+        with st.expander("🔧 Admin/Developer Access"):
+            st.markdown("**For authorized administrators only**")
+
+            admin_email = st.text_input(
+                "Admin Email:",
+                key="admin_email_footer",
+                placeholder="admin@example.com"
+            )
+
+            if st.button("Verify Admin", key="verify_admin_footer"):
+                if self.check_admin_email(admin_email):
+                    st.session_state.is_admin = True
+                    st.session_state.admin_email = admin_email
+                    st.session_state.payment_verified = True
+                    st.success("✅ Admin access granted!")
+                    st.rerun()
+                else:
+                    st.error("❌ Not authorized")
 
     def show_limited_content(self):
         """Show limited preview for non-paid users"""
