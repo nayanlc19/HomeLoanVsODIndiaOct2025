@@ -174,9 +174,10 @@ class PaymentHandler:
 
     def show_razorpay_button(self):
         """Display Razorpay payment button with JavaScript"""
+        import os
 
-        # Razorpay configuration
-        razorpay_key = st.secrets.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
+        # Razorpay configuration - use environment variables for Render deployment
+        razorpay_key = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
 
         razorpay_html = f"""
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
