@@ -134,6 +134,7 @@ prepayment_month = st.sidebar.selectbox(
 # Overdraft usage pattern
 st.sidebar.subheader("Overdraft Usage Pattern")
 st.sidebar.markdown("*If you're considering overdraft option*")
+st.sidebar.info("💡 These amounts are IN ADDITION to your monthly EMI payment. You still pay EMI + park this surplus money.")
 
 surplus_amount = st.sidebar.number_input(
     "Surplus Amount to Park Initially (₹)",
@@ -141,7 +142,7 @@ surplus_amount = st.sidebar.number_input(
     max_value=loan_amount,
     value=500000,
     step=50000,
-    help="Amount you can park in OD account from Day 1"
+    help="💰 One-time amount you can deposit in OD account from Day 1 (savings, bonus, inheritance, etc.). This is SEPARATE from and IN ADDITION to your monthly EMI payment."
 )
 
 monthly_surplus = st.sidebar.number_input(
@@ -150,7 +151,7 @@ monthly_surplus = st.sidebar.number_input(
     max_value=200000,
     value=20000,
     step=5000,
-    help="Extra money you can park each month"
+    help="💸 Extra money you can park EVERY MONTH in addition to your EMI. This is money left after paying EMI + all expenses. If salary is ₹1L, EMI is ₹40K, expenses are ₹35K, your monthly surplus is ₹25K."
 )
 
 withdrawal_pattern = st.sidebar.radio(
@@ -553,7 +554,6 @@ if use_personalized and user_profile:
     st.markdown("**💳 Profile Impact on Your Rates:**")
 
     # Calculate adjustments for display
-    from rate_calculator import calculate_personalized_rate, get_profile_impact_summary
     result = calculate_personalized_rate(regular_base, user_profile)
     summary = get_profile_impact_summary(result['adjustments'], user_profile)
 
